@@ -1,0 +1,160 @@
+body{
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+	position: relative;
+	padding-bottom: 6rem;
+	min-height: 100vh;
+}
+
+footer{
+	position: absolute;
+	bottom: 0;
+}
+
+.banner{
+	height: 200px;
+}
+
+.bg-principal{
+	background-color: #21262D;
+}
+
+.text-bg-secundario{
+	background-color: #468da6;
+	color: #FFFFFF;
+}
+
+.text-bg-principal{
+	background-color: #21262D;
+	color: #FFFFFF;
+}
+
+.border-principal{
+	border-style: solid;
+	border-color: #21262D;
+	border-width: 1px;
+}
+
+.boton-primario{
+	background-color: #21262D;
+	color: #FFFFFF;
+}
+
+.boton-primario:hover{
+	background-color: #00AAE4;
+	color: #FFFFFF;
+	border-style:  solid;
+	border-color: #00AAE4;
+	border-width: 1px;
+}
+
+.boton-secundario{
+	border-color: #00AAE4;
+	color: #00AAE4;
+}
+
+.boton-secundario:hover{
+	background-color: #00AAE4;
+	color: #FFFFFF;
+}
+
+.primario-t{
+	background-color: #21262D;
+}
+
+.primario-t:hover{
+	background-color: #00AAE4;
+	color: #FFFFFF;
+}
+
+.blanco-t{
+	color: #FFFFFF;
+	transition:color 0.2s ease; 
+}
+
+.blanco-t:hover{
+	color: #00AAE4;
+}
+
+.gris-t{
+	color: #828282;
+	transition:color 0.2s ease;
+}
+
+.gris-t:hover{
+	color: #00AAE4;
+}
+
+.logoImg{
+	width: 30px;
+	height: 30px;
+	margin-right: 0.5rem;
+}
+
+.btn-invicible{
+	background-color: none;
+}
+
+.img-miniatura{
+	padding:.25rem;
+	border-radius:50%!important;
+	width:50px;
+	height:50px;
+}
+
+.img-perfil{
+	padding:.25rem;
+	border-radius:50%!important;
+	width: 100px;
+	height: 100px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.cb{
+	display: none;
+}
+
+.tag{
+	background-color: #808080;
+	color: white;
+	padding: 0.2rem;
+	border: solid 1px #808080;
+	border-radius:.375rem
+}
+
+.tag:hover{
+	border-color: #21262D;
+}
+
+.cb:checked + .tag{
+	background-color: #21262D;
+	border-color: #21262D;
+}
+
+.etiqueta{
+	border: solid 1px black;
+	border-radius: 2px;
+	padding: 0rem 0.2rem 0rem 0.2rem;
+	margin: 0px 1rem 0px 1rem;
+	visibility: hidden;
+}
+
+.etiqueta:hover{
+	cursor: pointer;
+	border-color: red;
+	color: red;
+}
+
+.cb:checked + .etiqueta{
+	visibility: visible;
+}
