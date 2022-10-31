@@ -34,7 +34,7 @@
 						<div class="mb-3">
 					    	<label for="inpuTitulo" class="form-label">Título </label>
 						    <input type="text" class="form-control" id="inpuTitulo" name="inpuTitulo">
-						    <label id="alertaTitulo" class="text-danger visually-hidden">Debe ingresar un título, no mayor a 20 caracteres.</label>
+						    <label id="alertaTitulo" class="text-danger visually-hidden">Debe ingresar un título, no mayor a 50 caracteres.</label>
 					  	</div>
 					  	<div class="mb-3">
 					    	<label for="inputDesc" class="form-label">Descripción</label>

@@ -46,7 +46,7 @@
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 					<li class="nav-item">
 						<?php
-							if($_SERVER['PHP_SELF'] == "/pm/index.php"){
+							if($_SERVER['PHP_SELF'] == "/PM/index.php"){
 								echo "<a class=\"nav-link blanco-t\" aria-current=\"page\" href=\"index.php\">Inicio</a>";
 							}else{
 								echo "<a class=\"nav-link gris-t\" href=\"index.php\">Inicio</a>";
@@ -55,7 +55,7 @@
 					</li>
 					<li class="nav-item">
 						<?php
-							if($_SERVER['PHP_SELF'] == "/pm/cursando.php"){
+							if($_SERVER['PHP_SELF'] == "/PM/cursando.php"){
 								echo "<a class=\"nav-link blanco-t\" aria-current=\"page\" href=\"cursando.php\">Cursando</a>";
 							}else{
 								echo "<a class=\"nav-link gris-t\" href=\"cursando.php\">Cursando</a>";
@@ -64,7 +64,7 @@
 					</li>        					
 					<li class="nav-item">
 						<?php
-							if($_SERVER['PHP_SELF'] == "/pm/dictando.php"){
+							if($_SERVER['PHP_SELF'] == "/PM/dictando.php"){
 								echo "<a class=\"nav-link blanco-t\" aria-current=\"page\" href=\"dictando.php\">Dictando</a>";
 							}else{
 								echo "<a class=\"nav-link gris-t\" href=\"dictando.php\">Dictando</a>";

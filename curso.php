@@ -67,11 +67,11 @@
 			<div class="row">
 				<div class="col-12 mt-5">
 					<?php 
-						echo "<h2 class=\"mb-5\">".$resultadoCurso['Titulo']."</h2><p>Profesor: ".$resultadoCurso['apellido']." ".$resultadoCurso['nombre']; 
+						echo "<h2 class=\"mb-5\">".$resultadoCurso['Titulo']."</h2><form action=\"curso.php?curso=".$curso."\" method=\"POST\"><p>Profesor: ".$resultadoCurso['apellido']." ".$resultadoCurso['nombre']; 
 						if($codigo > 0 && !$esProfesor && !$esAlumno){
-							echo "<button class=\"btn boton-primario ms-5\" type=\"submit\">Quiero inscribirme</button>";
+							echo"<input class=\"btn boton-primario ms-5\" type=\"submit\" name=\"inscribirme\" value=\"Quiero inscribirme\">";
 						}
-						echo "</p>";
+						echo "</p></form>";
 					?>
 				</div>
 				<ul class="nav justify-content-center bg-principal">
@@ -141,7 +141,7 @@
 								$profesor = $conexion->query($sqlProfesor);
 								$profesor = $profesor->fetch_assoc();
 
-								$sqlAlumnos = "SELECT FotoIcono, Nombre, Apellido FROM usuarios u,cursos c, cursa ca WHERE CodigoEstudiante = u.Codigo AND CodigoCurso = c.Codigo AND c.Codigo = '$curso'";
+								$sqlAlumnos = "SELECT u.Codigo, FotoIcono, Nombre, Apellido, PagoPendiente FROM usuarios u,cursos c, cursa ca WHERE CodigoEstudiante = u.Codigo AND CodigoCurso = c.Codigo AND c.Codigo = '$curso'";
 								$alumnos = $conexion->query($sqlAlumnos);
 							?>
 							<h4 class="text-primary border-bottom border-primary border-opacity-50">Profesor</h4>
@@ -154,15 +154,29 @@
 							?>
 							<label> <?php echo $profesor['Nombre']." ".$profesor['Apellido']; ?></label>
 							<h4 class="mt-5 text-primary">Alumnos</h4>
-							<p class="text-primary border-bottom border-primary border-opacity-50"><?php echo $alumnos->num_rows ?> alumnos</p>
+							<p class="text-primary border-bottom border-primary border-opacity-50"><?php echo $alumnos->num_rows ?> alumno/s</p>
 							<?php
 								while($alumno = $alumnos->fetch_assoc()){
+									if($esProfesor){
+										echo "<form action=\"curso.php?curso=".$curso."\" method=\"POST\">";
+									}
 									if($alumno['FotoIcono'] == ""){
 										echo "<img class=\"img-miniatura\" src=\"imagenes/usuarios/usuario-icono.png\"></i>";
 									}else{
 										echo "<img class=\"img-miniatura\" src=\"".$alumno['FotoIcono']."\"></i>";
 									}
-									echo "<label>".$alumno['Nombre']." ".$alumno['Apellido']."</label>";
+									if($alumno['PagoPendiente'] == 1 && $esProfesor){
+										echo "<label class=\"me-5\">".$alumno['Nombre']." ".$alumno['Apellido']."</label><input class=\"btn btn-sm boton-primario ms-5\" type=\"submit\" value=\"Confirmar alumno\" name=\"confirmar\"><input class=\"btn btn-secondary btn-sm\" type=\"submit\" value=\"Eliminar alumno\" name=\"eliminar\"><input type=\"text\" name=\"codigoAlumno\" value=\"".$alumno['Codigo']."\" hidden>";
+									}else{
+										if($esProfesor){
+											echo "<label class=\"me-5\">".$alumno['Nombre']." ".$alumno['Apellido']."</label><input class=\"btn btn-secondary btn-sm ms-5\" type=\"submit\" value=\"Eliminar alumno\" name=\"eliminar\"><input type=\"text\" name=\"codigoAlumno\" value=\"".$alumno['Codigo']."\" hidden>";
+										}else{
+											echo "<label>".$alumno['Nombre']." ".$alumno['Apellido']."</label>";
+										}										
+									}
+									if($esProfesor){
+										echo "</form>";
+									}
 								}
 							?>
 						</div>
@@ -172,6 +186,45 @@
 		</div>
 
 		<?php
+		if(isset($_POST['eliminar'])){
+			$codigoAlumno = $_POST['codigoAlumno'];
+			try{
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+				$sqlEliminar = "DELETE FROM cursa WHERE CodigoCurso = '$curso' AND CodigoEstudiante = '$codigoAlumno'";
+				$resultado = $conexion->query($sqlEliminar);
+				if(!$resultado || $conexion->affected_rows == 0){
+					echo "<script>alert(\"Error al eliminar el alumno.\")</script>";
+				}
+				$conexion->close();
+				echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+			}catch(Exception $e){
+				echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+			}
+		}
+
+			if(isset($_POST['inscribirme'])){
+				try{
+					$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+					if($resultadoCurso['Costo'] == 0){
+						$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante) VALUES('$curso','$codigo')";
+					}else{
+						$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante,PagoPendiente) VALUES('$curso','$codigo','1')";
+					}
+					
+					$resultado = $conexion->query($sqlInscribir);
+					if(!$resultado || $conexion->affected_rows == 0){
+						echo "<script>alert(\"Error al prosesar la inscripción.\")</script>";		
+					}
+					$conexion->close();
+					echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+
+				}catch(Exception $e){
+	          		echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+		        }
+			}
+
 			if(isset($_FILES['material'])){
 				$archivo = 'materiales/'.basename($_FILES['material']['name']);
 				$tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
@@ -190,7 +243,7 @@
 								echo "<script>alert(\"Error al subir el archivo al sistema.\")</script>";	
 							}
 							$conexion->close();
-							echo "<script type=\"text/javascript\">window.location.href = \"".$_SERVER['PHP_SELF']."\";</script>";
+							echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
 						}else{
 							echo "<script>alert(\"Error al subir el archivo al sistema.\")</script>";
 						}
@@ -198,9 +251,41 @@
 				}
 			}
 
-			$conexion->close();
-			if($codigo == 0){
+			if(isset($_POST['confirmar'])){
+				$codigoAlumno = $_POST['codigoAlumno'];
+				$sqlConfirmar = "UPDATE cursa SET PagoPendiente = '0' WHERE CodigoEstudiante = '$codigoAlumno' AND CodigoCurso = '$curso'";
+				try{
+					$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+					$resultado = $conexion->query($sqlConfirmar);
+					if(!$resultado || $conexion->affected_rows == 0){
+						echo "<script>alert(\"Error al confirmar el usuario.\")</script>";
+					}
+					$conexion->close();
+					echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+				}catch(Exception $e){
+	          		echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+		        }
+			}
+
+			if(!$esAlumno && !$esProfesor){
 				echo"<script defer>document.getElementById(\"aMaterial\").classList.add(\"disabled\"); document.getElementById(\"aPreguntas\").classList.add(\"disabled\");document.getElementById(\"aPersonas\").classList.add(\"disabled\");</script>";
+			}else{
+				try{
+					$sqlPago = "SELECT ca.PagoPendiente FROM cursos c, usuarios u,cursa ca WHERE CodigoCurso = c.Codigo AND CodigoEstudiante = u.Codigo AND u.Codigo = '$codigo' AND c.Codigo = '$curso'";
+					$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+					$pagoPendiente = $conexion->query($sqlPago);
+					if($pagoPendiente && $conexion->affected_rows > 0){
+						$pagoPendiente = $pagoPendiente->fetch_assoc();
+						if($pagoPendiente['PagoPendiente'] == 1){
+							echo"<script defer>document.getElementById(\"aMaterial\").classList.add(\"disabled\"); document.getElementById(\"aPreguntas\").classList.add(\"disabled\");document.getElementById(\"aPersonas\").classList.add(\"disabled\");alert(\"Podras acceder al curso completo cuando el profesor confirme tu pago\")</script>";
+						}
+					}
+
+				}catch(Exception $e){
+	          		echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+		        }
 			}
 			include 'footer.html';
 		?>
