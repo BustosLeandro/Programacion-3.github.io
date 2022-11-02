@@ -1,7 +1,7 @@
 function validarTitulo(){
 	var titulo = document.getElementById("inpuTitulo").value;
 	var valido = Boolean(true);
-	if(titulo.length < 5 || titulo.length > 20){
+	if(titulo.length < 5 || titulo.length > 50){
 		document.getElementById("inpuTitulo").classList.add("border");
 		document.getElementById("inpuTitulo").classList.add("border-danger");
 		document.getElementById("alertaTitulo").classList.remove("visually-hidden");

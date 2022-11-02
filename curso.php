@@ -207,19 +207,70 @@
 				try{
 					$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 
-					if($resultadoCurso['Costo'] == 0){
-						$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante) VALUES('$curso','$codigo')";
+					//VALIDAR SI ES PRO
+					$esPro = "SELECT Tipo FROM usuarios u,tipousuarios t WHERE Es = t.Codigo AND u.Codigo = '$codigo'";
+					$esPro = $conexion->query($esPro);
+					$esPro = $esPro->fetch_assoc();
+					if($esPro['Tipo'] == 'Usuario Pro'){
+						if($resultadoCurso['Costo'] == 0){
+							$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante) VALUES('$curso','$codigo')";
+						}else{
+							$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante,PagoPendiente) VALUES('$curso','$codigo','1')";
+						}
+						
+						$resultado = $conexion->query($sqlInscribir);
+						if(!$resultado || $conexion->affected_rows == 0){
+							echo "<script>alert(\"Error al prosesar la inscripción.\")</script>";		
+						}
+						$conexion->close();
+						echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
 					}else{
-						$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante,PagoPendiente) VALUES('$curso','$codigo','1')";
-					}
-					
-					$resultado = $conexion->query($sqlInscribir);
-					if(!$resultado || $conexion->affected_rows == 0){
-						echo "<script>alert(\"Error al prosesar la inscripción.\")</script>";		
-					}
-					$conexion->close();
-					echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+						//VALIDAR CANTIDAD DE CURSOS ACTIVOS
+						$cursosActivos = 0;
+						$cursos = "SELECT Titulo,FechaFin FROM cursos c, usuarios u, cursa ca WHERE CodigoCurso = c.Codigo AND CodigoEstudiante = u.Codigo AND u.Codigo = '$codigo'";
 
+						$hoy = date('Y-m-d');
+					 	$hoy = date("jS F, Y", strtotime( $hoy));
+					 	$hoy = strtotime($hoy);
+						$cursos = $conexion->query($cursos);
+						while($unCurso = $cursos->fetch_assoc()){
+							$fecha = $unCurso['FechaFin'];
+							$fecha = date("jS F, Y", strtotime( $fecha));
+							$fecha = strtotime($fecha);
+							if($fecha > $hoy){
+								$cursosActivos++;
+							}							
+						}
+						if($cursosActivos < 3){
+							//VALIDAR QUE EL CURSO ESTE ACTIVO
+							$fechaFin = "SELECT FechaFin FROM cursos WHERE Codigo = '$curso'";
+
+							$unCurso = $conexion->query($fechaFin);
+							$unCurso = $unCurso->fetch_assoc();
+							$fechaFin = $unCurso['FechaFin'];
+							$fechaFin = date("jS F, Y", strtotime( $fechaFin));
+							$fechaFin = strtotime($fechaFin);
+							if($fechaFin < $hoy){
+								echo "<script>alert(\"El curso ha finalizado\")</script>";
+							}else{
+								//APTO PARA INSCRIBIRSE
+								if($resultadoCurso['Costo'] == 0){
+									$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante) VALUES('$curso','$codigo')";
+								}else{
+									$sqlInscribir = "INSERT INTO cursa(CodigoCurso,CodigoEstudiante,PagoPendiente) VALUES('$curso','$codigo','1')";
+								}
+								
+								$resultado = $conexion->query($sqlInscribir);
+								if(!$resultado || $conexion->affected_rows == 0){
+									echo "<script>alert(\"Error al prosesar la inscripción.\")</script>";		
+								}
+								$conexion->close();
+								echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+								}							
+						}else{
+							echo "<script>Para anotarse a más de 3 cursos en simultaneo debe tener una cuenta PRO</script>";
+						}				
+					}
 				}catch(Exception $e){
 	          		echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
 		        }
