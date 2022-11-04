@@ -9,8 +9,11 @@
 		die("Error al conectarse con la base de datos");
 	}
 	
-	$sql = "SELECT c.codigo, titulo, fechaInicio, fechaFin, nombre AS profesor FROM cursos c, usuarios u, etiquetas e, tags t WHERE CodigoProfesor = u.Codigo AND c.Codigo = CodigoCurso AND etiqueta = t.Codigo AND (titulo = '$buscador' OR Tag = '$buscador' )";
-	$resultados = $conexion->query($sql);
+	$sqlTitulo = "SELECT c.Codigo, Titulo, FechaInicio, FechaFin, Imagen, Nombre AS Profesor FROM cursos c, usuarios u WHERE CodigoProfesor = u.Codigo AND titulo LIKE '%$buscador%'";
+	$resultadoTitulos = $conexion->query($sqlTitulo);
+
+	$sqlEtiquetas = "SELECT c.Codigo, Titulo, FechaInicio, FechaFin, Imagen, Nombre AS Profesor FROM cursos c, usuarios u, etiquetas e, tags t WHERE CodigoProfesor = u.Codigo AND CodigoCurso = c.Codigo AND Etiqueta = t.Codigo AND Tag LIKE '%$buscador%'";
+	$resultadoEtiquetas = $conexion->query($sqlEtiquetas);
 ?>
 <!DOCTYPE html>
 <html>
@@ -41,12 +44,26 @@
 					<hr class="border border-secondary border-2 opacity-75">
 				</div>
 				<?php
-					if($resultados && $resultados->num_rows > 0){
-						while($curso = $resultados->fetch_assoc()){
-							echo "<div class=\"col-md-3\"><a href=\"curso.php?curso=".$curso['codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"max-width: 18rem;\"><div class=\"card-header text-bg-secondary\">".$curso['titulo']."</div><div class=\"card-body text-bg-light\"><p class=\"card-text\">Profesor: ".$curso['profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['fechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['fechaFin']."</p></div></a></div>";
+					if($resultadoTitulos && $resultadoTitulos->num_rows > 0){
+						while($curso = $resultadoTitulos->fetch_assoc()){
+							if($curso['Imagen'] == ""){
+								echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"imagenes/cursos/default.png\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+							}else{
+								echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"".$curso['Imagen']."\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+							}
 						}
 					}else{
-						echo "<div class=\"alert text-center\" role=\"alert\">No hemos encontrado cursos para: ".$buscador.".</div>";
+						if($resultadoEtiquetas && $resultadoEtiquetas->num_rows > 0){
+							while($curso = $resultadoEtiquetas->fetch_assoc()){
+								if($curso['Imagen'] == ""){
+									echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"imagenes/cursos/default.png\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+								}else{
+									echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"".$curso['Imagen']."\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+								}
+							}
+						}else{
+							echo "<div class=\"alert text-center\" role=\"alert\">No hemos encontrado cursos para: ".$buscador.".</div>";
+						}
 					}
 
 				?>

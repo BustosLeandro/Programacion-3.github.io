@@ -226,22 +226,22 @@
 						echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
 					}else{
 						//VALIDAR CANTIDAD DE CURSOS ACTIVOS
-						$cursosActivos = 0;
+						$cantCursos = 0;
 						$cursos = "SELECT Titulo,FechaFin FROM cursos c, usuarios u, cursa ca WHERE CodigoCurso = c.Codigo AND CodigoEstudiante = u.Codigo AND u.Codigo = '$codigo'";
 
-						$hoy = date('Y-m-d');
-					 	$hoy = date("jS F, Y", strtotime( $hoy));
-					 	$hoy = strtotime($hoy);
+						$hoy = $hoy = date('Y-m-d');
+						$hoy = date_create($hoy);
 						$cursos = $conexion->query($cursos);
 						while($unCurso = $cursos->fetch_assoc()){
 							$fecha = $unCurso['FechaFin'];
-							$fecha = date("jS F, Y", strtotime( $fecha));
-							$fecha = strtotime($fecha);
-							if($fecha > $hoy){
-								$cursosActivos++;
+							$fecha = date_create($fecha);		
+							$intervalo = date_diff($hoy,$fecha);
+
+							if($intervalo->invert == 0){
+								$cantCursos++;
 							}							
 						}
-						if($cursosActivos < 3){
+						if($cantCursos < 3){
 							//VALIDAR QUE EL CURSO ESTE ACTIVO
 							$fechaFin = "SELECT FechaFin FROM cursos WHERE Codigo = '$curso'";
 
@@ -268,7 +268,7 @@
 								echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
 								}							
 						}else{
-							echo "<script>Para anotarse a más de 3 cursos en simultaneo debe tener una cuenta PRO</script>";
+							echo "<script>alert(\"Para anotarse a más de 3 cursos en simultaneo debe tener una cuenta PRO\")</script>";
 						}				
 					}
 				}catch(Exception $e){

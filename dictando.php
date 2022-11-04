@@ -12,10 +12,11 @@
 	try{
 		$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 		
-		$cursos = "SELECT c.Codigo,c.Costo, c.Titulo, c.fechaInicio, c.fechaFin FROM usuarios u, cursos c WHERE CodigoProfesor = u.Codigo AND u.Codigo = '$codigo'";
+		$cursos = "SELECT c.Codigo, Costo, Titulo, FechaInicio, FechaFin, Imagen FROM usuarios u, cursos c WHERE CodigoProfesor = u.Codigo AND u.Codigo = '$codigo'";
 		
 		$cursos = $conexion->query($cursos); 
 
+		$conexion->close();
 	}catch(Exeption $e){
 		echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
 	}
@@ -34,13 +35,20 @@
 		<?php
 			include 'cabecera-logeado.php';
 		?>
-		<h2 class="text-principal mt-5 mb-4">Tus cursos:</h2>
+		<div class="card-body d-flex justify-content-between align-items-center">
+			<h2 class="text-principal mt-5 mb-4">Tus cursos:</h2>
+			<a href="crearCurso.php" class="btn btn-primary btn-sm me-5">Crear curso</a>
+		</div>
 		<div class="container">
 			<?php
 				if($cursos->num_rows > 0){
 					echo "<div class=\"row\">";
 					while($curso = $cursos->fetch_assoc()){
-						echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"max-width: 18rem;\"><div class=\"card-header text-bg-secondary\">".$curso['Titulo']."</div><div class=\"card-body text-bg-light\"><p class=\"card-text\">Fecha de inicio: ".$curso['fechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['fechaFin']."</p><p class=\"card-text\">Costo: ".$curso['Costo']."</p></div></a></div>";
+						if($curso['Imagen'] == ""){
+							echo "<a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"col-sm-3  me-4 card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"imagenes/cursos/default.png\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p><p class=\"card-text\">Costo: ".$curso['Costo']."</p></div></a>";
+						}else{
+							echo "<a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"col-sm-3 me-4 card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"".$curso['Imagen']."\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p><p class=\"card-text\">Costo: ".$curso['Costo']."</p></div></a>";
+						}
 					}
 					echo "</div>";
 				}else{

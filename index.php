@@ -33,13 +33,13 @@
 				}
 
 				//CONSULTA (TRAE LOS CURSOS DE LOS USUARIOS PRO)
-				$sqlDestacados = "SELECT c.Codigo, Titulo, Nombre, fechaInicio, fechaFin FROM cursos c, usuarios u, tipousuarios t WHERE u.Codigo = CodigoProfesor AND Es = t.Codigo AND Tipo = 'Usuario pro'";
+				$sqlDestacados = "SELECT c.Codigo, Titulo, Nombre AS Profesor, FechaInicio, FechaFin, Imagen FROM cursos c, usuarios u, tipousuarios t WHERE u.Codigo = CodigoProfesor AND Es = t.Codigo AND Tipo = 'Usuario pro'";
 				$cursosDestacados = $conexion->query($sqlDestacados);
 				$cantDestacados = $cursosDestacados->num_rows;
 				
 
 				//CONSULTA (TRAE LOS CURSOS QUE LE PUEDEN INTERESAR AL USUARIO)
-				$sqlIntereses = "SELECT c.Codigo,Titulo,fechaInicio,fechaFin,Nombre FROM cursos c, usuarios u, etiquetas e, intereses i WHERE CodigoProfesor = u.Codigo AND i.CodigoUsuario = '$codigo' AND c.Codigo = e.CodigoCurso AND Interes = Etiqueta";
+				$sqlIntereses = "SELECT c.Codigo, Titulo, FechaInicio, FechaFin, Nombre AS Profesor, Imagen FROM cursos c, usuarios u, etiquetas e, intereses i WHERE CodigoProfesor = u.Codigo AND i.CodigoUsuario = '$codigo' AND c.Codigo = e.CodigoCurso AND Interes = Etiqueta";
 				$cursosIntereses = $conexion->query($sqlIntereses);
 				$cantIntereses = $cursosIntereses->num_rows;
 
@@ -70,7 +70,11 @@
 				if($cantDestacados > 0){
 					echo "<div class=\"row\">";
 					while($curso = $cursosDestacados->fetch_assoc()) {
-						echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"max-width: 18rem;\"><div class=\"card-header text-bg-secondary\">".$curso['Titulo']."</div><div class=\"card-body text-bg-light\"><p class=\"card-text\">Profesor: ".$curso['Nombre']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['fechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['fechaFin']."</p></div></a></div>";
+						if($curso['Imagen'] == ""){
+							echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"imagenes/cursos/default.png\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+						}else{
+							echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"".$curso['Imagen']."\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+						}
 					}
 					echo "</div>";
 				}else{
@@ -86,7 +90,11 @@
 				if($cantIntereses > 0){
 					echo "<div class=\"row\">";
 					while($curso = $cursosIntereses->fetch_assoc()){
-						echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"max-width: 18rem;\"><div class=\"card-header text-bg-secondary\">".$curso['Titulo']."</div><div class=\"card-body text-bg-light\"><p class=\"card-text\">Profesor: ".$curso['Nombre']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['fechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['fechaFin']."</p></div></a></div>";
+						if($curso['Imagen'] == ""){
+							echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"imagenes/cursos/default.png\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+						}else{
+							echo "<div class=\"col-sm-3\"><a href=\"curso.php?curso=".$curso['Codigo']."\" class=\"card border-principal mb-3 nav-link\" style=\"width: 18rem;\"><img src=\"".$curso['Imagen']."\" class=\"card-img-top img-curso\" alt=\"Imagen del curso\"><div class=\"card-body\"><h4 class=\"card-title\">".$curso['Titulo']."</h4><p class=\"card-text\">Profesor: ".$curso['Profesor']."</p><p class=\"card-text\">Fecha de inicio: ".$curso['FechaInicio']."</p><p class=\"card-text\">Fecha de fin del curso: ".$curso['FechaFin']."</p></div></a></div>";
+						}
 					}
 					echo "</div>";
 				}else{

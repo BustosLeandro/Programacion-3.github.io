@@ -38,7 +38,10 @@
 					  	</div>
 					  	<div class="mb-3">
 					    	<label for="inputDesc" class="form-label">Descripción</label>
-						    <input type="text" class="form-control" id="inputDesc" name="inputDesc" placeholder="OPCIONAL">
+						    <div class="form-floating">
+						  		<textarea class="form-control" id="inputDesc"></textarea>
+						  		<label for="inputDesc">Opcional</label>
+							</div>
 					  	</div>
 					  	<div class="mb-3">
 						  	<label for="material" class="form-label">Seleecione archivos (pdf o docx)</label>
