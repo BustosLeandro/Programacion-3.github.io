@@ -100,14 +100,15 @@
 					    		</tr>
 						  	</thead>
 						  	<tbody>
-						    	<tr>
-						      		<td>1</td>
-						      		<td>bustosleandro27@gmail.com</td>
-						      		<td>Leandro</td>
-						      		<td>archivo</td>
-						      		<td><a href="#"><i class="bi bi-check-circle"></i></a></td>
-						      		<td><a href="#" class="text-danger"><i class="bi bi-x-circle"></i></a></td>
-						    	</tr>
+						  		<?php
+						  			$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+						  			$solicitudes = "SELECT u.Codigo, Nombre, Email, Adjunto FROM mensajes m, usuarios u WHERE m.CodigoEmisor = u.Codigo";
+
+						  			$solicitudes = $conexion->query($solicitudes);
+						  			while($solicitud = $solicitudes->fetch_assoc()){
+						  				echo "<tr><td>".$solicitud['Codigo']."</td><td>".$solicitud['Email']."</td><td>".$solicitud['Nombre']."</td><td><a href=\"".$solicitud['Adjunto']."\" target=\"blank\"><i class=\"bi bi-filetype-pdf\"></i></a></td><td></td><td><a href=\"dashboard.php?aUsuario=".$solicitud['Codigo']."\"><i class=\"bi bi-check-circle\"></i></a></td><td><a class=\"text-danger\" href=\"dashboard.php?rUsuario=".$solicitud['Codigo']."\"><i class=\"bi bi-x-circle\"></i></a></td></tr>";
+						  			}
+						  		?>
 						  	</tbody>
 						</table>
 					</div>
@@ -207,6 +208,51 @@
 						echo "<script> window.location.href = \"".$_SERVER['PHP_SELF']."\"</script>";
 					}
 				}	
+			}
+
+			if(isset($_GET['aUsuario'])){
+				$usuario = $_GET['aUsuario'];
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+				$hacerPro = "UPDATE usuarios SET Es = (SELECT Codigo FROM tipousuarios WHERE Tipo = 'Usuario Pro') WHERE Codigo = '$usuario'";
+
+				$hacerPro = $conexion->query($hacerPro);
+				if($hacerPro && $conexion->affected_rows > 0){
+					$pago = "SELECT Adjunto FROM mensajes WHERE CodigoEmisor = '$usuario'";
+
+					$pago = $conexion->query($pago);
+					if($pago->num_rows > 0){
+						$pago = $pago->fetch_assoc();
+						$pago = $pago['Adjunto'];
+						$borrar = "DELETE FROM mensajes WHERE mensajes.CodigoEmisor = '$usuario'";
+
+						$borrar = $conexion->query($borrar);
+						if($borrar && $conexion->affected_rows > 0){
+							unlink($pago);
+						}
+					}
+				}
+				$conexion->close();
+				echo "<script>window.location.href = \"".$_SERVER['PHP_SELF']."\"</script>";
+			}
+
+			if(isset($_GET['rUsuario'])){
+				$usuario = $_GET['rUsuario'];
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+				$pago = "SELECT Adjunto FROM mensajes WHERE CodigoEmisor = '$usuario'";
+
+				$pago = $conexion->query($pago);
+				if($pago->num_rows > 0){
+					$pago = $pago->fetch_assoc();
+					$pago = $pago['Adjunto'];
+					$borrar = "DELETE FROM mensajes WHERE mensajes.CodigoEmisor = '$usuario'";
+
+					$borrar = $conexion->query($borrar);
+					if($borrar && $conexion->affected_rows > 0){
+						unlink($pago);
+					}
+				}
+				$conexion->close();
+				echo "<script>window.location.href = \"".$_SERVER['PHP_SELF']."\"</script>";
 			}
 		?>
 		<script src="js/dashboard.js"></script>

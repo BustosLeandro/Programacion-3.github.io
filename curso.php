@@ -277,7 +277,7 @@
 			}
 
 			if(isset($_FILES['material'])){
-				$archivo = 'materiales/'.basename($_FILES['material']['name']);
+				$archivo = 'archivos/materiales/'.basename($_FILES['material']['name']);
 				$tipoArchivo = strtolower(pathinfo($archivo, PATHINFO_EXTENSION));
 				$size = $_FILES['material']['size'];
 				if($size > 5242880){

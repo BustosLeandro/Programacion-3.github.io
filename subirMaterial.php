@@ -99,7 +99,7 @@
 						echo "<script>alert(\"Para poder subir más de 10mb en archivos debe poseer una cuenta pro\")</script>";
 					}else{
 						//SI PASA ESTAS VALIDACIONES SE VALIDA QUE EL ARCHIVO NO EXISTA
-						$archivo = 'materiales/'.basename($_FILES['material']['name']);
+						$archivo = 'archivos/materiales/'.basename($_FILES['material']['name']);
 						$existe = "SELECT Archivo FROM Materiales WHERE Archivo = '$archivo'";
 						
 						$existe = $conexion->query($existe);
