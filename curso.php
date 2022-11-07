@@ -90,7 +90,7 @@
 				</ul>
 				<div class="container-fluid">
 					<div class="row">
-						<div class="col-12 ps-3 pt-3 text-dark" id="Informacion">
+						<div class="col-12 ps-3 pt-3 text-dark mb-3" id="Informacion">
 							<p>Fecha de inicio: <?php echo $resultadoCurso['FechaInicio'] ?></p>
 							<p>Fecha de fin del curso: <?php echo $resultadoCurso['FechaFin'] ?></p>
 							<?php
@@ -104,7 +104,7 @@
 							?>
 							<p>Costo: $<?php echo $resultadoCurso['Costo'] ?></p>
 						</div>
-						<div class="col-12 text-dark visually-hidden" id="Material">
+						<div class="col-12 text-dark visually-hidden mb-3" id="Material">
 							<?php
 								$sqlMateriales = "SELECT * FROM materiales WHERE codigocurso = '$curso'";
 								$materiales = $conexion->query($sqlMateriales);
@@ -132,10 +132,49 @@
 
 							?>
 						</div>
-						<div class="col-12 text-dark visually-hidden" id="Preguntas">
-							<h2>Preguntas</h2>
+						<div class="col-12 text-dark visually-hidden mb-3" id="Preguntas">
+							<form class="col-12 mt-2" id="formPregunta" action="curso.php?curso=<?php echo $curso; ?>" method="POST">
+								<div class="form-floating">
+							  		<textarea class="form-control" placeholder="Leave a comment here" name="inputPregunta" id="inputPregunta"></textarea>
+								  	<label for="inputPregunta">Haz tu pregunta...</label>
+								</div>
+								<label id="alertaPregunta" class="text-danger visually-hidden">Debe ingresar una pregunta.</label>
+								<div  id="botonPregunta" class="card-body d-flex justify-content-between align-items-center mt-2 visually-hidden">
+									<span></span>
+									<input class="btn btn-secondary btn-sm" type="submit" name="preguntar" value="Preguntar">
+								</div>
+							</form>
+							<?php
+								$preguntas = "SELECT p.Codigo, Pregunta, Fecha, Nombre, FotoIcono, esDestacada FROM preguntas p, cursos c, usuarios u WHERE CodigoUsuario = u.Codigo AND CodigoCurso = c.Codigo AND c.Codigo = '$curso'";
+
+								$preguntas = $conexion->query($preguntas);
+
+								while($pregunta = $preguntas->fetch_assoc()){
+									if($pregunta['esDestacada']){
+										echo "<div class=\"col-12 mt-2 alert alert-info\">";
+									}else{
+										echo "<div class=\"col-12 mt-2 alert alert-light\">";	
+									}									
+									if($pregunta['FotoIcono'] == ''){
+										echo "<img src=\"imagenes/usuarios/usuario-icono.png\" class=\"img-miniatura\">";
+									}else{
+										echo "<img src=\"".$pregunta['FotoIcono']."\" class=\"img-miniatura\">";
+									}
+									echo "<label>".$pregunta['Nombre']." - ".$pregunta['Fecha']."</label><p class=\"ms-2 mt-2\">".$pregunta['Pregunta']."</p>";
+									if($esProfesor){
+										if($pregunta['esDestacada']){
+											echo "<div class=\"card-body d-flex justify-content-between align-items-center\"><div><a href=\"pregunta.php?pregunta=".$pregunta['Codigo']."\" class=\"ms-2\">Ver respuestas/responder</a></div><div><a class=\"me-2\"><i class=\"bi bi-heart-fill\"></i></a><a href=\"curso.php?curso=".$curso."&borrarPregunta=".$pregunta['Codigo']."\"><i class=\"bi bi-trash3\"></i></a></div></div></div>";
+										}else{
+											echo "<div class=\"card-body d-flex justify-content-between align-items-center\"><div><a href=\"pregunta.php?pregunta=".$pregunta['Codigo']."\" class=\"ms-2\">Ver respuestas/responder</a></div><div><a class=\"me-2\" href=\"curso.php?curso=".$curso."&destacar=".$pregunta['Codigo']."\"><i class=\"bi bi-heart\"></i></a><a href=\"curso.php?curso=".$curso."&borrarPregunta=".$pregunta['Codigo']."\"><i class=\"bi bi-trash3\"></i></a></div></div></div>";
+										}
+									}else{
+										echo "<a href=\"pregunta.php?pregunta=".$pregunta['Codigo']."\" class=\"ms-2\">Ver respuestas/responder</a></div>";
+									}
+								}
+								
+							?>
 						</div>
-						<div class="col-12 ps-3 pt-3 text-dark visually-hidden" id="Personas">
+						<div class="col-12 ps-3 pt-3 text-dark visually-hidden mb-3" id="Personas">
 							<?php
 								$sqlProfesor = "SELECT FotoIcono, Nombre, Apellido FROM usuarios u,cursos c WHERE CodigoProfesor = u.Codigo AND c.Codigo = '$curso'";
 								$profesor = $conexion->query($sqlProfesor);
@@ -157,25 +196,18 @@
 							<p class="text-primary border-bottom border-primary border-opacity-50"><?php echo $alumnos->num_rows ?> alumno/s</p>
 							<?php
 								while($alumno = $alumnos->fetch_assoc()){
-									if($esProfesor){
-										echo "<form action=\"curso.php?curso=".$curso."\" method=\"POST\">";
-									}
 									if($alumno['FotoIcono'] == ""){
 										echo "<img class=\"img-miniatura\" src=\"imagenes/usuarios/usuario-icono.png\"></i>";
 									}else{
 										echo "<img class=\"img-miniatura\" src=\"".$alumno['FotoIcono']."\"></i>";
 									}
+									echo "<label class=\"me-5\">".$alumno['Nombre']." ".$alumno['Apellido']."</label>";
 									if($alumno['PagoPendiente'] == 1 && $esProfesor){
-										echo "<label class=\"me-5\">".$alumno['Nombre']." ".$alumno['Apellido']."</label><input class=\"btn btn-sm boton-primario ms-5\" type=\"submit\" value=\"Confirmar alumno\" name=\"confirmar\"><input class=\"btn btn-secondary btn-sm\" type=\"submit\" value=\"Eliminar alumno\" name=\"eliminar\"><input type=\"text\" name=\"codigoAlumno\" value=\"".$alumno['Codigo']."\" hidden>";
+										echo "<a class=\"btn boton-primario btn-sm me-2\" href=\"curso.php?curso=$curso&confirmar=".$alumno['Codigo']."\">Confirmar alumno</a><a class=\"btn btn-secondary btn-sm\" href=\"curso.php?curso=".$curso."&eliminar=".$alumno['Codigo']."\">Eliminar alumno</a><br>";
 									}else{
 										if($esProfesor){
-											echo "<label class=\"me-5\">".$alumno['Nombre']." ".$alumno['Apellido']."</label><input class=\"btn btn-secondary btn-sm ms-5\" type=\"submit\" value=\"Eliminar alumno\" name=\"eliminar\"><input type=\"text\" name=\"codigoAlumno\" value=\"".$alumno['Codigo']."\" hidden>";
-										}else{
-											echo "<label>".$alumno['Nombre']." ".$alumno['Apellido']."</label>";
+											echo "<a class=\"btn btn-secondary btn-sm\" href=\"curso.php?curso=".$curso."&eliminar=".$alumno['Codigo']."\">Eliminar alumno</a><br>";
 										}										
-									}
-									if($esProfesor){
-										echo "</form>";
 									}
 								}
 							?>
@@ -186,8 +218,59 @@
 		</div>
 
 		<?php
-		if(isset($_POST['eliminar'])){
-			$codigoAlumno = $_POST['codigoAlumno'];
+		if(isset($_POST['inputPregunta'])){
+			$inputPregunta = $_POST['inputPregunta'];
+			if($esAlumno){
+				$insertarPregunta = "INSERT INTO preguntas(Pregunta,CodigoUsuario,CodigoCurso) values('$inputPregunta','$codigo','$curso')";
+
+				$conexion->query($insertarPregunta);
+				if($insertarPregunta && $conexion->affected_rows > 0){
+					echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+				}else{
+					echo "<script>alert(\"Error al subir la pregunta, por favor intentelo de nuevo\");window.location.href = \"curso.php?curso=".$curso."\"</scipt>";
+				}
+			}else{
+				echo "<script>alert(\"Debe ser alumno para poder realizar una pregunta\")</script>";
+			}			
+		}
+
+		if(isset($_GET['borrarPregunta'])){
+			$codigoPregunta = $_GET['borrarPregunta'];
+			try{
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+				$sqlEliminar = "DELETE FROM preguntas WHERE Codigo = '$codigoPregunta'";
+				$resultado = $conexion->query($sqlEliminar);
+				if(!$resultado || $conexion->affected_rows == 0){
+					echo "<script>alert(\"Error al eliminar la pregunta.\")</script>";
+				}
+				$conexion->close();
+				echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+			}catch(Exception $e){
+				echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+			}
+		}
+
+		if(isset($_GET['destacar'])){
+			$codigoPregunta = $_GET['destacar'];
+			try{
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+				$sqlDestacar  = "UPDATE	preguntas SET esDestacada = '1' WHERE Codigo = '$codigoPregunta'";
+				$resultado = $conexion->query($sqlDestacar);
+				if(!$resultado || $conexion->affected_rows == 0){
+					echo "<script>alert(\"Error al destacar la pregunta.\")</script>";
+				}
+
+				$conexion->close();
+				echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
+			}catch(Exception $e){
+				echo "<script>alert(\"Surgio una excepción del tipo: ".$e."\")</script>";
+			}
+		}
+
+		if(isset($_GET['eliminar'])){
+			$codigoAlumno = $_GET['eliminar'];
 			try{
 				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 
@@ -302,8 +385,8 @@
 				}
 			}
 
-			if(isset($_POST['confirmar'])){
-				$codigoAlumno = $_POST['codigoAlumno'];
+			if(isset($_GET['confirmar'])){
+				$codigoAlumno = $_GET['confirmar'];
 				$sqlConfirmar = "UPDATE cursa SET PagoPendiente = '0' WHERE CodigoEstudiante = '$codigoAlumno' AND CodigoCurso = '$curso'";
 				try{
 					$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
@@ -340,6 +423,7 @@
 			}
 			include 'footer.html';
 		?>
+		<script src="js/preguntas.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js" integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK" crossorigin="anonymous"></script>
 	</body>
