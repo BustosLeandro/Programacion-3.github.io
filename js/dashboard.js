@@ -80,3 +80,42 @@ formModificar.addEventListener("submit",function(evt){
 		document.getElementById("formModificar").submit();
 	}
 })
+
+function validarFecha(){
+	var valido = Boolean(true);
+	//Obtengo la fecha actual
+	const fecha = new Date();
+	var dia = fecha.getDate();
+	if(dia<=9){
+		dia.toString();
+		dia = "0" + dia;
+	}
+	var mes = fecha.getMonth()+1;
+	if(mes<=9){
+		mes.toString();
+		mes = "0" + mes;
+	}
+	const hoy = fecha.getFullYear() + "-" + mes + "-" + dia;
+	inputFecha = document.getElementById("fechaVencimiento").value;
+
+	//Valido que la fecha de inicio no sea menor a la fecha actual
+	if(inputFecha < hoy){
+		document.getElementById("fechaVencimiento").classList.add("border");
+		document.getElementById("fechaVencimiento").classList.add("border-danger");
+		document.getElementById("alertaFecha").classList.remove("visually-hidden");
+		valido = Boolean(false);
+	}else{
+		document.getElementById("fechaVencimiento").classList.remove("border");
+		document.getElementById("fechaVencimiento").classList.remove("border-danger");
+		document.getElementById("alertaFecha").classList.add("visually-hidden");
+	}
+	return valido;
+}
+
+formFecha = document.getElementById("formFecha");
+formFecha.addEventListener("submit",function(evt){
+	evt.preventDefault();
+	if(validarFecha()){
+		document.getElementById("formFecha").submit();
+	}
+})

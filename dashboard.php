@@ -212,8 +212,14 @@
 
 			if(isset($_GET['aUsuario'])){
 				$usuario = $_GET['aUsuario'];
-				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
-				$hacerPro = "UPDATE usuarios SET Es = (SELECT Codigo FROM tipousuarios WHERE Tipo = 'Usuario Pro') WHERE Codigo = '$usuario'";
+				echo " <div class=\"ventana\"><div class=\"contenido p-5\"><form id=\"formFecha\" action=\"dashboard.php?aUsuario2=".$usuario."\" method=\"POST\"><div class=\"mb-5\"><label for=\"fechaVencimiento\" class=\"form-label\">Vencimiento de la cuenta pro:</label><input type=\"date\" class=\"form-control\" id=\"fechaVencimiento\" name=\"fechaVencimiento\"><label class=\"text-danger visually-hidden\" id=\"alertaFecha\">Debe seleccionar una fecha valida.</label><div class=\" mt-3 card-body d-flex justify-content-between align-items-center\"><span></span><button type=\"submit\" class=\"btn btn-primary\">Guardar</button></div></form></div></div>";
+			}
+
+			if(isset($_GET['aUsuario2'])){
+				$fechaVencimiento = $_POST['fechaVencimiento'];
+				$usuario = $_GET['aUsuario2'];
+				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);				
+				$hacerPro = "UPDATE usuarios SET VencimientoPro = '$fechaVencimiento', Es = (SELECT Codigo FROM tipousuarios WHERE Tipo = 'Usuario Pro') WHERE Codigo = '$usuario'";
 
 				$hacerPro = $conexion->query($hacerPro);
 				if($hacerPro && $conexion->affected_rows > 0){
@@ -255,6 +261,8 @@
 				echo "<script>window.location.href = \"".$_SERVER['PHP_SELF']."\"</script>";
 			}
 		?>
+
+		
 		<script src="js/dashboard.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="	sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>

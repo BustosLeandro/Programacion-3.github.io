@@ -43,7 +43,20 @@
               if($usuario['Tipo'] == "Admin"){
                 header("Location:dashboard.php");
               }else{
-                header("Location:".$_SESSION['pagAnterior']);
+                if($usuario['Tipo'] == 'Usuario Pro'){
+                  //Comparo fecha
+                  $hoy = date('Y-m-d');
+                  $hoy = date_create($hoy);
+
+                  $fecha = $usuario['VencimientoPro'];
+                  $fecha = date_create($fecha);
+                  $intervalo = date_diff($hoy,$fecha);
+                  if($intervalo->invert == 1){
+                    $sqlGratuito = "UPDATE usuarios SET VencimientoPro = NULL, Es = (SELECT Codigo FROM tipousuarios WHERE Tipo = 'Usuario gratuito') WHERE Codigo = '{$usuario['Codigo']}'";
+                    $conexion->query($sqlGratuito);
+                  }
+                }
+                echo "<script>window.location.href = '".$_SESSION['pagAnterior']."'</script>"; 
               }
             }else{
               echo "<script>alert(\"Nombre de usuario y/o clave incorrectos.\")</script>"; 

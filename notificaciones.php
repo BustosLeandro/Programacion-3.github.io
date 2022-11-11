@@ -10,7 +10,7 @@
 
 	$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 
-	$sqlNotificaciones = "SELECT n.Codigo, n.Notificacion, n.Vista, n.Fecha FROM recibe r,usuarios u, notificaciones n WHERE r.CodigoUsuario = u.Codigo AND u.Codigo = '$codigo' AND r.CodigoNotificacion = n.Codigo";
+	$sqlNotificaciones = "SELECT n.Codigo, n.Notificacion, r.Vista, n.Fecha FROM recibe r,usuarios u, notificaciones n WHERE r.CodigoUsuario = u.Codigo AND u.Codigo = '$codigo' AND r.CodigoNotificacion = n.Codigo";
 	$tablaNotificaciones = $conexion->query($sqlNotificaciones);	
 	$conexion->close();
 ?>
@@ -67,7 +67,7 @@
 		$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 
 		$codigoNotificacion	= $_GET['nCodigo'];
-		$vista = "UPDATE notificaciones SET Vista = '1' WHERE Codigo = '$codigoNotificacion'";
+		$vista = "UPDATE recibe SET vista = '1' WHERE CodigoUsuario = '$codigo' AND CodigoNotificacion = '$codigoNotificacion'";
 		$vista = $conexion->query($vista);
 		if($conexion->affected_rows == 0){
 			echo "<script>alert(\"Error al marcar como vista, intentelo nuevamente\")</script>";

@@ -9,8 +9,13 @@
 	$nombreUsuario = 'root';
 	$bd = 'pm';
 
-	$pregunta = "SELECT p.Codigo, Pregunta, Fecha, u.Codigo as codigoUsuario, Nombre, FotoIcono, esDestacada FROM preguntas p, cursos c, usuarios u WHERE CodigoUsuario = u.Codigo AND CodigoCurso = c.Codigo AND p.Codigo = '$codigoPregunta'";
 	$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
+
+	$nombre = "SELECT Nombre, Codigo FROM usuarios WHERE Codigo = $codigo";
+	$nombre = $conexion->query($nombre);
+	$nombre = $nombre->fetch_assoc();
+
+	$pregunta = "SELECT p.Codigo, Pregunta, Fecha, u.Codigo as codigoUsuario, Nombre, FotoIcono, esDestacada, c.Titulo FROM preguntas p, cursos c, usuarios u WHERE CodigoUsuario = u.Codigo AND CodigoCurso = c.Codigo AND p.Codigo = '$codigoPregunta'";	
 	$pregunta = $conexion->query($pregunta);
 	if($pregunta->num_rows == 0){
 		echo "<script>alert(\"No pudimos encontrar la pregunta.\")</script>";
@@ -110,7 +115,7 @@
 								echo "<div class=\"card-body d-flex justify-content-between align-items-center\"><span></span><div><a href=\"pregunta.php?pregunta=$codigoPregunta&respuesta=".$valor['Codigo']."\" class=\"me-2\"><i class=\"bi bi-heart\"></i></a>";
 							}
 							if($valor['dRespuesta'] == $codigo){
-								echo "<a href=\"#\" data-bs-toggle=\"modal\" data-bs-target=\"#exampleModal".$valor['Codigo']."\" data-bs-whatever=\"@mdo\"><i class=\"bi bi-pencil-square\"></i></a><div class=\"modal fade\" id=\"exampleModal".$valor['Codigo']."\" tabindex=\"-1\" aria-labelledby=\"exampleModalLabel\" aria-hidden=\"true\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><h1 class=\"modal-title fs-5\" id=\"exampleModalLabel\">Editar respuesta:</h1><button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"modal\" aria-label=\"Close\"></button></div><div class=\"modal-body\"><form action=\"pregunta.php?pregunta=$codigoPregunta&eRespuesta=".$valor['Codigo']."\" method=\"POST\"><div class=\"mb-3\"><label for=\"message-text\" class=\"col-form-label\">Respuesta:</label><textarea class=\"form-control\" id=\"message-text\" name=\"editarRespuesta\"></textarea></div><div class=\"card-body d-flex justify-content-between align-items-center\"><span></span><div><button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Cerrar</button><input type=\"submit\" class=\"btn btn-primary ms-2\" value=\"Editar\"></div></div></form></div></div></div></div>";
+								echo "<div class=\"card-body d-flex justify-content-between align-items-center\"><span></span><a href=\"#\" data-bs-toggle=\"modal\" data-bs-target=\"#exampleModal".$valor['Codigo']."\" data-bs-whatever=\"@mdo\"><i class=\"bi bi-pencil-square\"></i></a><div class=\"modal fade\" id=\"exampleModal".$valor['Codigo']."\" tabindex=\"-1\" aria-labelledby=\"exampleModalLabel\" aria-hidden=\"true\"><div class=\"modal-dialog\"><div class=\"modal-content\"><div class=\"modal-header\"><h1 class=\"modal-title fs-5\" id=\"exampleModalLabel\">Editar respuesta:</h1><button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"modal\" aria-label=\"Close\"></button></div><div class=\"modal-body\"><form action=\"pregunta.php?pregunta=$codigoPregunta&eRespuesta=".$valor['Codigo']."\" method=\"POST\"><div class=\"mb-3\"><label for=\"message-text\" class=\"col-form-label\">Respuesta:</label><textarea class=\"form-control\" id=\"message-text\" name=\"editarRespuesta\"></textarea></div><div class=\"card-body d-flex justify-content-between align-items-center\"><span></span><div><button type=\"button\" class=\"btn btn-secondary\" data-bs-dismiss=\"modal\">Cerrar</button><input type=\"submit\" class=\"btn btn-primary ms-2\" value=\"Editar\"></div></div></form></div></div></div></div></div>";
 							}
 							echo "</div></div></div>";
 						}												
@@ -163,6 +168,48 @@
 			$conexion->query($destaca);
 			$conexion->query($cerrarTema);
 
+			if($cerrarTema && $conexion->affected_rows > 0){
+				$codigoDuenio = "SELECT CodigoUsuario FROM respuestas WHERE Codigo = '$codigoRespuesta'";
+				$codigoDuenio = $conexion->query($codigoDuenio);
+				$codigoDuenio = $codigoDuenio->fetch_assoc();
+
+				//Creo la notificacion
+				$notificacion = "La pregunta del curso ".$pregunta['Titulo']." en la que participaste ha sido cerrada";
+				$notificacionDuenio = "El usuario ".$nombre['Nombre']." destaco tu respuesta a la pregunta del curso ".$pregunta['Titulo'];
+
+				$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacion')";
+				$notificacion = $conexion->query($notificacion);
+				if($notificacion && $conexion->affected_rows > 0){
+					//Se la entrego a los alumnos que respondieron la pregunta y al dueño de la pregunta.
+					$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+					$codigoNotificacion = $conexion->query($codigoNotificacion);
+					$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+					$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+					$alumnos = "SELECT DISTINCT u.Codigo FROM usuarios u, respuestas r, preguntas p WHERE r.CodigoUsuario = u.Codigo AND r.CodigoPregunta = p.Codigo AND p.Codigo = '$codigoPregunta' AND u.Codigo != '{$codigoDuenio['CodigoUsuario']}' AND u.Codigo != '{$nombre['Codigo']}'";
+					$alumnos = $conexion->query($alumnos);
+
+					while($alumno = $alumnos->fetch_assoc()){
+						$alumno = $alumno['Codigo'];
+						$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('$alumno','$codigoNotificacion')";
+						$conexion->query($recibe);
+					}	
+
+					$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacionDuenio')";
+					$notificacion = $conexion->query($notificacion);
+					//Se la entrego al dueño de la respuesta.
+					$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+					$codigoNotificacion = $conexion->query($codigoNotificacion);
+					$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+					$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+					if($notificacion && $conexion->affected_rows > 0){
+						$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('{$codigoDuenio['CodigoUsuario']}','$codigoNotificacion')";
+						$conexion->query($recibe);
+					}	
+				}
+
+			}
 			$conexion->close();
 			echo "<script>window.location.href = \"pregunta.php?pregunta=".$codigoPregunta."\"</script>";
 		}		
@@ -181,22 +228,103 @@
 			$insertarRespuesta = "INSERT INTO respuestas(Respuesta, CodigoPregunta, CodigoUsuario) VALUES ('$inputRespuesta','$codigoPregunta','$codigo')";
 
 			$ultimoResp = $conexion->query($ultimoResp);
-			if($ultimoResp->num_rows == 0){
-				$ultimoResp = $ultimoResp->fetch_assoc();
+			if($ultimoResp->num_rows > 0){
+				$ultimoResp = $ultimoResp->fetch_assoc();				
 				if($ultimoResp['Codigo'] == $codigo){
 					echo "<script>alert(\"No puede responder dos veces seguidas una pregunta.\")</script>";
 				}else{
-					$insertarPregunta = $conexion->query($insertarRespuesta);
+					$insertarRespuesta = $conexion->query($insertarRespuesta);
 					if(!$insertarRespuesta || $conexion->affected_rows == 0){
 						echo "<script>alert(\"Error al subir la respuetsa.\")</script>";
+					}else{						
+						//Creo la notificacion
+						$notificacionDuenio = "El usuario ".$nombre['Nombre']." respondió tu pregunta del curso ".$pregunta['Titulo'];
+						$notificacion = "El usuario ".$nombre['Nombre']." respondió una pregunta del curso ".$pregunta['Titulo'].", que tú también respondiste";			
+
+						$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacion')";
+						$notificacion = $conexion->query($notificacion);
+
+						if($notificacion && $conexion->affected_rows > 0){
+							//Se la entrego a los alumnos que respondieron la pregunta.
+							$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+							$codigoNotificacion = $conexion->query($codigoNotificacion);
+							$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+							$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+							$alumnos = "SELECT DISTINCT u.Codigo FROM usuarios u, respuestas r, preguntas p WHERE r.CodigoUsuario = u.Codigo AND r.CodigoPregunta = p.Codigo AND p.Codigo = '$codigoPregunta' AND u.Codigo != '{$pregunta['codigoUsuario']}' AND u.Codigo != '{$nombre['Codigo']}'";
+							$alumnos = $conexion->query($alumnos);
+
+							while($alumno = $alumnos->fetch_assoc()){
+								$alumno = $alumno['Codigo'];
+								$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('$alumno','$codigoNotificacion')";
+								$conexion->query($recibe);
+							}
+
+							$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacionDuenio')";
+							$notificacion = $conexion->query($notificacion);
+							//Se la entrego al dueño de la pregunta.
+							$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+							$codigoNotificacion = $conexion->query($codigoNotificacion);
+							$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+							$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+							if($notificacion && $conexion->affected_rows > 0){
+								if($pregunta['Nombre'] != $nombre['Nombre']){
+									$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('{$pregunta['codigoUsuario']}','$codigoNotificacion')";
+									$conexion->query($recibe);
+								}	
+							}	
+						}
+
+						
 					}				
 				}
 			}else{
-				$insertarPregunta = $conexion->query($insertarRespuesta);
+				$insertarRespuesta = $conexion->query($insertarRespuesta);
 				if(!$insertarRespuesta || $conexion->affected_rows == 0){
-					echo "<script>alert(\"Error al subir la respuetsa.\")</script>";
+					echo "<script>alert(\"Error al subir la respuesta.\")</script>";
+				}else{
+					//Creo la notificacion
+					$notificacionDuenio = "El usuario ".$nombre['Nombre']." respondió tu pregunta del curso ".$pregunta['Titulo'];
+					$notificacion = "El usuario ".$nombre['Nombre']." respondió una pregunta del curso ".$pregunta['Titulo']." que tú también respondiste";
+								
+					$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacion')";
+					$notificacion = $conexion->query($notificacion);
+					if($notificacion && $conexion->affected_rows > 0){
+						//Se la entrego a los alumnos que respondieron la pregunta.
+						$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+						$codigoNotificacion = $conexion->query($codigoNotificacion);
+						$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+						$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+						$alumnos = "SELECT DISTINCT u.Codigo FROM usuarios u, respuestas r, preguntas p WHERE r.CodigoUsuario = u.Codigo AND r.CodigoPregunta = p.Codigo AND p.Codigo = '$codigoPregunta' AND u.Codigo != '{$pregunta['codigoUsuario']}' AND u.Codigo != '{$nombre['Codigo']}'";
+						$alumnos = $conexion->query($alumnos);
+
+						while($alumno = $alumnos->fetch_assoc()){
+							$alumno = $alumno['Codigo'];
+							$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('$alumno','$codigoNotificacion')";
+							$conexion->query($recibe);
+						}
+
+
+						$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacionDuenio')";
+						$notificacion = $conexion->query($notificacion);
+						//Se la entrego al dueño de la pregunta.
+						$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+						$codigoNotificacion = $conexion->query($codigoNotificacion);
+						$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+						$codigoNotificacion = $codigoNotificacion['Codigo'];
+						
+						if($notificacion && $conexion->affected_rows > 0){
+							if($pregunta['Nombre'] != $nombre['Nombre']){
+								$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('{$pregunta['codigoUsuario']}','$codigoNotificacion')";
+								$conexion->query($recibe);
+							}	
+						}				
+					}
 				}
 			}
+			$conexion->close();
 			echo "<script>window.location.href = \"pregunta.php?pregunta=".$codigoPregunta."\"</script>";
 		}else{
 			echo "<script>alert(\"El tema ya ha sido cerrado.\")</script>";

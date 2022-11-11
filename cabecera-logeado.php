@@ -12,7 +12,7 @@
             }
 
             //Notificaciones
-            $notificaciones = "SELECT COUNT(u.Codigo) AS Codigo FROM recibe r,usuarios u, notificaciones n WHERE r.CodigoUsuario = u.Codigo AND u.Codigo = '$codigo' AND r.CodigoNotificacion = n.Codigo AND n.Vista ='0'";
+            $notificaciones = "SELECT COUNT(u.Codigo) AS Codigo FROM recibe r,usuarios u, notificaciones n WHERE r.CodigoUsuario = u.Codigo AND u.Codigo = '$codigo' AND r.CodigoNotificacion = n.Codigo AND r.Vista ='0'";
             $notificaciones = $conexion->query($notificaciones);
             if($notificaciones->num_rows > 0){
             	$notificaciones = $notificaciones->fetch_assoc();

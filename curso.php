@@ -225,6 +225,34 @@
 
 				$conexion->query($insertarPregunta);
 				if($insertarPregunta && $conexion->affected_rows > 0){
+					$alumno = "SELECT Nombre FROM usuarios WHERE Codigo = '$codigo'";
+					$alumno = $conexion->query($alumno);
+					$alumno = $alumno->fetch_assoc();
+
+					//Creo la notificacion
+					$notificacion = "El usuario ".$alumno['Nombre']." hizo una pregunta en el curso ".$resultadoCurso['Titulo'];
+					$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacion')";
+					$notificacion = $conexion->query($notificacion);
+
+					if($notificacion && $conexion->affected_rows > 0){
+						//Se la entrego a los alumnos del curso y al profesor
+						$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+						$codigoNotificacion = $conexion->query($codigoNotificacion);
+						$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+						$codigoNotificacion = $codigoNotificacion['Codigo'];
+
+						$alumnos = "SELECT u.Codigo FROM cursos c, usuarios u, cursa ca WHERE c.Codigo = '1' AND ca.CodigoEstudiante = u.Codigo AND ca.CodigoCurso = c.Codigo AND u.Codigo != '$codigo'";
+						$alumnos = $conexion->query($alumnos);
+
+						while($alumno = $alumnos->fetch_assoc()){
+							$alumno = $alumno['Codigo'];
+							$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('$alumno','$codigoNotificacion')";
+							$conexion->query($recibe);
+						}
+						$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('{$resultadoCurso['CodigoProfesor']}','$codigoNotificacion')";
+						$conexion->query($recibe);
+					}
+					$conexion->close();
 					echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
 				}else{
 					echo "<script>alert(\"Error al subir la pregunta, por favor intentelo de nuevo\");window.location.href = \"curso.php?curso=".$curso."\"</scipt>";
@@ -239,10 +267,31 @@
 			try{
 				$conexion = new mysqli($servidor,$nombreUsuario,"",$bd);
 
+				$codigoDuenio = "SELECT CodigoUsuario FROM preguntas WHERE Codigo = '$codigoPregunta'";
+				$codigoDuenio = $conexion->query($codigoDuenio);
+				$codigoDuenio = $codigoDuenio->fetch_assoc();
+				$codigoDuenio = $codigoDuenio['CodigoUsuario'];
+
 				$sqlEliminar = "DELETE FROM preguntas WHERE Codigo = '$codigoPregunta'";
 				$resultado = $conexion->query($sqlEliminar);
 				if(!$resultado || $conexion->affected_rows == 0){
 					echo "<script>alert(\"Error al eliminar la pregunta.\")</script>";
+				}else{
+					//Creo la notificacion
+					$notificacion = "El profesor del curso ".$resultadoCurso['Titulo']." borró tu pregunta.";
+
+					$notificacion = "INSERT INTO notificaciones(Notificacion) VALUES ('$notificacion')";
+					$notificacion = $conexion->query($notificacion);
+					$codigoNotificacion = "SELECT MAX(Codigo) AS Codigo FROM notificaciones";
+					$codigoNotificacion = $conexion->query($codigoNotificacion);
+					$codigoNotificacion = $codigoNotificacion->fetch_assoc();
+					$codigoNotificacion = $codigoNotificacion['Codigo'];
+					if($notificacion && $conexion->affected_rows > 0){
+						//Se la entrego al dueño de la pregunta
+						
+						$recibe = "INSERT INTO recibe(CodigoUsuario, CodigoNotificacion) VALUES ('$codigoDuenio','$codigoNotificacion')";
+						$conexion->query($recibe);
+					}
 				}
 				$conexion->close();
 				echo "<script>window.location.href = \"curso.php?curso=".$curso."\";</script>";
